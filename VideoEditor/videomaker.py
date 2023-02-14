@@ -118,3 +118,68 @@ def make_final_video(
     final.close()
 
     print("See result in the results folder!")
+
+
+def make_subtitled_video(
+    title_audio_path,
+    answer_audio_path,
+    title_image_path,
+    length: int,
+    reddit_id,
+
+):
+    # settings values
+    W = 1080
+    H = 1920
+    opacity = 0.95
+
+    print("Creating the final video 🎥")
+    background_clip = prepare_background(reddit_id, length,W,H)
+
+
+
+    # Gather all audio clips
+    audio_clips = [AudioFileClip(title_audio_path), AudioFileClip(answer_audio_path)]
+    audio_concat = concatenate_audioclips(audio_clips)
+    audio_composite = CompositeAudioClip([audio_concat])
+
+    print(f"Video Will Be: {length} Seconds Long")
+
+    # add title to video
+    image_clips = []
+    # Gather all images
+
+    new_opacity = 1 if opacity is None or float(opacity) >= 1 else float(opacity)
+
+    screenshot_width = int((W * 90) // 100)
+
+    title = ImageClip(title_image_path).set_duration(audio_clips[0].duration).set_opacity(new_opacity).set_position("center")
+    resized_title = resize(title, width=screenshot_width)
+    image_clips.insert(
+        0,
+        resized_title,
+    )
+
+    image_concat = concatenate_videoclips(image_clips,)  # note transition kwarg for delay in imgs
+    image_concat.audio = audio_composite
+    audio_composite.close()
+    final = CompositeVideoClip([background_clip, image_concat.set_position("center")])
+    if(final.duration > length):
+        speed_multiplier = length / final.duration
+        final = final.fx(vfx.speedx, speed_multiplier)
+        
+    image_concat.close()
+
+    subreddit = reddit_id
+
+    final.write_videofile(
+        f"./Results/{subreddit}.mp4",
+        fps=int(24),
+        audio_codec="aac",
+        audio_bitrate="192k",
+        threads=multiprocessing.cpu_count(),
+        #preset="ultrafast", # for testing purposes
+    )
+    final.close()
+
+    print("See result in the results folder!")

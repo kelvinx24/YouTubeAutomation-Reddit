@@ -81,3 +81,52 @@ def get_screenshots_of_reddit_posts(reddit_thread, reddit_comments, screenshot_n
         browser.close()
 
     print("Screenshots downloaded Successfully.")
+
+def get_thread_title(reddit_thread,  theme="dark"):
+    # settings values
+    W = 1080
+    H = 1920
+
+    reddit_id = re.sub(r"[^\w\s-]", "", reddit_thread.id)
+    # ! Make sure the reddit screenshots folder exists
+    Path(f"./Assets/temp/{reddit_id}/png").mkdir(parents=True, exist_ok=True)
+
+    dsf = (W // 600) + 1
+
+    with sync_playwright() as p:
+        print("Launching Headless Browser...")
+        browser = p.chromium.launch(headless=True)  # headless=False #to check for chrome view
+        context = browser.new_context(
+            locale="en-us",
+            color_scheme="dark",
+            viewport=ViewportSize(width=W, height=H),
+            device_scale_factor=dsf,
+    )
+
+        if theme == "dark":
+            cookie_file = open(
+                "./Graphics/data/cookie-dark-mode.json", encoding="utf-8"
+            )
+            bgcolor = (33, 33, 36, 255)
+            txtcolor = (240, 240, 240)
+
+        cookies = json.load(cookie_file)
+        cookie_file.close()
+
+        context.add_cookies(cookies)  # load preference cookies
+
+        # Get the thread screenshot
+        page = context.new_page()
+        page.goto("https://www.reddit.com" + reddit_thread.permalink, timeout=0)
+        page.set_viewport_size(ViewportSize(width=W, height=H))
+
+        postcontentpath = f"./Assets/temp/{reddit_id}/png/title.png"
+        page.locator(f'[data-test-id="post-content"]').screenshot(path=postcontentpath)
+        browser.close()
+    
+    print("Screenshots downloaded Successfully.")
+
+    
+
+
+    
