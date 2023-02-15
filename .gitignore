@@ -1,0 +1,7 @@
+*.pyc
+*.pyo
+*.mp3
+*.mp4
+*.png
+database.json
+config.toml

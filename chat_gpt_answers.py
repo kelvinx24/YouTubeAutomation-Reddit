@@ -13,7 +13,7 @@ import time
 import OpenAI.chat_gpt as chat_gpt
 
 RESPONSE_LENGTH = 200
-ASK_REDDIT_PROMPT = f"Write about an experience that answers the question in {RESPONSE_LENGTH} words:\n"
+ASK_REDDIT_PROMPT = f"Answer the question as a Reddit commenter in {RESPONSE_LENGTH} words:\n"
 
 
 def main():
@@ -88,7 +88,8 @@ if __name__ == '__main__':
     my_config = config.load_config()
     while True:
         print('Starting ..........\n')
-        main()
+        for i in range(10):
+            main()
         print('\n-------------------------------------------\n')
         time.sleep(my_config['App']['run_every'])
 

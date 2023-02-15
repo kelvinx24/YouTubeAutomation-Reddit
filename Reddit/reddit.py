@@ -10,11 +10,10 @@ import config
 import database
 
 submission = Query()
-
+my_config = config.load_config()
 
 def login():
     try:
-        my_config = config.load_config()
         reddit = praw.Reddit(client_id=my_config['RedditCredential']['client_id'],
                              client_secret=my_config['RedditCredential']['client_secret'],
                              user_agent=my_config['RedditCredential']['user_agent'])
@@ -40,6 +39,9 @@ def get_thread(reddit:Reddit, subreddit:str):
     # get the top most up-voted thread that is not in the database
     db = database.load_databse()
     for thread in sorted_threads:
+        if((my_config["App"]["allow_nsfw"] == False) and (thread.over_18)):
+            continue
+        
         if not db.search(submission.id == str(thread.id)):
             db.insert({'id': thread.id, 'time': time.time()})
             db.close()

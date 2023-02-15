@@ -4,9 +4,10 @@ import multiprocessing
 from os.path import exists
 from typing import Tuple, Any, Final
 
-import shutil
+from pathlib import Path
 from typing import Tuple, Any
 from PIL import Image
+import random
 
 from moviepy.audio.AudioClip import concatenate_audioclips, CompositeAudioClip
 from moviepy.audio.io.AudioFileClip import AudioFileClip
@@ -17,9 +18,47 @@ from moviepy.video.io.VideoFileClip import VideoFileClip
 from moviepy.video.io.ffmpeg_tools import ffmpeg_extract_subclip
 from moviepy.video.fx.resize import resize
 from moviepy.video.fx.crop import crop
+from moviepy.editor import vfx
+
 import random
 import time
 import config
+
+def prepare_random_background(length, W, H):
+    my_config = config.load_config()
+    video_folder = Path(my_config['Background']['path_folder'])
+
+    potential_videos = list(video_folder.glob('*'))
+    
+    counter = 0
+    vide_duration = 0
+    video = False
+    while(counter <= len(potential_videos)):
+        video_path = random.choice(potential_videos)
+        video = VideoFileClip(str(video_path)).without_audio()
+        vide_duration = video.duration
+
+        if (vide_duration >= length):
+            break
+        
+
+    random_start = random.randint(0, int(vide_duration))
+    vid = video.subclip(random_start, random_start+length)
+    video.close()
+
+    vid_resized = resize(vid, height=H)
+    clip = (
+        vid_resized
+    )
+    # calculate the center of the background clip
+    c = clip.w // 2
+
+    # calculate the coordinates where to crop
+    half_w = W // 2
+    x1 = c - half_w
+    x2 = c + half_w
+
+    return crop(clip, x1=x1, y1=0, x2=x2, y2=H)
 
 def prepare_background(reddit_id,length,W, H):
     my_config = config.load_config()
@@ -134,7 +173,7 @@ def make_subtitled_video(
     opacity = 0.95
 
     print("Creating the final video 🎥")
-    background_clip = prepare_background(reddit_id, length,W,H)
+    background_clip = prepare_random_background(length,W,H)
 
 
 
@@ -142,6 +181,10 @@ def make_subtitled_video(
     audio_clips = [AudioFileClip(title_audio_path), AudioFileClip(answer_audio_path)]
     audio_concat = concatenate_audioclips(audio_clips)
     audio_composite = CompositeAudioClip([audio_concat])
+
+    if(audio_composite.duration > length):
+        speed_multiplier =  audio_composite.duration / length 
+        audio_composite = audio_composite.fx(vfx.speedx, speed_multiplier)
 
     print(f"Video Will Be: {length} Seconds Long")
 
@@ -164,9 +207,6 @@ def make_subtitled_video(
     image_concat.audio = audio_composite
     audio_composite.close()
     final = CompositeVideoClip([background_clip, image_concat.set_position("center")])
-    if(final.duration > length):
-        speed_multiplier = length / final.duration
-        final = final.fx(vfx.speedx, speed_multiplier)
         
     image_concat.close()
 

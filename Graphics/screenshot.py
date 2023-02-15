@@ -6,7 +6,6 @@ from typing import Dict, Final
 from playwright.async_api import async_playwright  # pylint: disable=unused-import
 from playwright.sync_api import ViewportSize, sync_playwright
 
-
 #from utils.imagenarator import imagemaker
 
 
@@ -119,6 +118,10 @@ def get_thread_title(reddit_thread,  theme="dark"):
         page = context.new_page()
         page.goto("https://www.reddit.com" + reddit_thread.permalink, timeout=0)
         page.set_viewport_size(ViewportSize(width=W, height=H))
+
+        if (reddit_thread.over_18):
+            page.get_by_text("I'm over 18").click()
+
 
         postcontentpath = f"./Assets/temp/{reddit_id}/png/title.png"
         page.locator(f'[data-test-id="post-content"]').screenshot(path=postcontentpath)
