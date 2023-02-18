@@ -1,9 +1,6 @@
 # YouTubeAutomation-Reddit 🎥
 Using this project, videos generated from Reddit posts will be automatically uploaded to your YouTube channel <br />
 
-## Sample Video 
-https://user-images.githubusercontent.com/69358811/213927870-48c6f2af-f320-4a62-be51-411f6915a283.mp4
-
 ## Built With
 * [![AWS][AWS.com]][AWS-url]
 * [![Python][Python.com]][Python-url]
